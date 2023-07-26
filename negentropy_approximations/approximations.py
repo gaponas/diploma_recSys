@@ -183,35 +183,3 @@ class NegentropyApprox5:
         term1 = torch.mul(self.k1, torch.pow(torch.mean(torch.mul(-x, self.g2(x))), 2))
         term2 = torch.mul(self.k2, torch.pow(torch.sub(torch.mean(-self.g2(x)), self.coef), 2))
         return term1 + term2
-
-
-class NegEntropySum:
-    """
-    Мера независимости.
-    Представляет собой сумму негэнтропий случайных величин, которые предварительно обелены.
-    На вход подается вектор случайных величин, элементы которого -- выборки этих случайных величин.
-    """
-    def __init__(self, negentropy_approx: Callable, preprocessing: Callable):
-        """
-        :param negentropy_approx: Callable, некоторая функция по вычислению приближение негэнтропии
-        :param preprocessing: Callable, функция по выполнению предобработки входных данных
-        """
-        self.negentropy = negentropy_approx
-        self.preprocessing = preprocessing
-
-    def __call__(self, x: torch.Tensor) -> float:
-        """
-        Вычисление меры независимости.
-        :param x: torch.Tensor, вектор случайных величин, элементы которого -- выборки этих случайных величин
-        :return: float, результат вычисления меры независимости
-        """
-        assert len(x.size()) == 2
-        x_preproc = self.preprocessing(x)
-        print(x_preproc)
-        negentropy_for_each_variable = torch.zeros((x.size(0), 1))
-        for i in range(x.size(0)):
-            negentropy_for_each_variable[i] = self.negentropy(x_preproc[i])
-        # если получили отрицательные значения -- значит из-за погрешности ушли в отрицательные
-        # поэтому нужно занулить их
-        negentropy_for_each_variable = torch.nn.functional.relu(negentropy_for_each_variable)
-        return torch.sum(negentropy_for_each_variable)
