@@ -131,7 +131,7 @@ class DataPreprocessing:
     def _train_valid_test_split_per(self, df: pd.DataFrame, per: float = 0.1) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         """
           Разделение датасета на train, valid, test части.
-          Деление выполняется по каждому пользователю.
+          Деление выполняется по каждому пользователю. В тестовый датасет попадают последние(хронологически) записи о нем.
           :param df: pd.DataFrame, датасет
           :param per: float, число в из интеравала (0, 1), размер тестовой и валидационной выборок в процентах
           :return: тренировочный, валидационный и тестовый датасеты.
@@ -162,7 +162,7 @@ class DataPreprocessing:
     def _train_test_split_per(self, df: pd.DataFrame, per: float = 0.2) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
           Разделение датасета на train и test части.
-          Деление выполняется по каждому пользователю.
+          Деление выполняется по каждому пользователю. В тестовый датасет попадают последние(хронологически) записи о нем.
           :param df: pd.DataFrame, датасет
           :param per: float, число в из интеравала (0, 1), размер тестовой выборки в процентах
           :return: тренировочный и тестовый датасеты.
@@ -187,7 +187,8 @@ class DataPreprocessing:
 
     def get_train_valid_test_dataloader(self, df: pd.DataFrame, batch_size: int, per: float = 0.1) -> Tuple[DataLoader, DataLoader]:
         """
-          Функция для получения на train и test DataLoader. Деление выполняется по каждому пользователю.
+          Функция для получения на train и test DataLoader.
+          Деление выполняется по каждому пользователю. В тестовый датасет попадают последние(хронологически) записи о нем.
           :param df: pd.DataFrame, датасет с данными
           :param batch_size: int, размер батча
           :param per: float, размер тестовой и валидационной выборок в процентах
@@ -227,7 +228,8 @@ class DataPreprocessing:
 
     def get_train_test_dataloader(self, df: pd.DataFrame, batch_size: int, per: float = 0.2) -> Tuple[DataLoader, DataLoader]:
         """
-          Функция для получения на train и test DataLoader. Деление выполняется по каждому пользователю.
+          Функция для получения на train и test DataLoader.
+          Деление выполняется по каждому пользователю. В тестовый датасет попадают последние(хронологически) записи о нем.
           :param df: pd.DataFrame, датасет с данными
           :param batch_size: int, размер батча
           :param per: float, размер тестовой и валидационной выборок в процентах
