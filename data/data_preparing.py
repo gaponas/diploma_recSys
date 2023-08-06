@@ -1,5 +1,6 @@
 import torch
 import pandas as pd
+import numpy as np
 from torch.utils.data import DataLoader, Dataset
 from typing import List, Tuple
 
@@ -38,6 +39,40 @@ class UserItemRatingDataset(Dataset):
 
     def __len__(self):
         return self.user_tensor.size(0)
+
+
+class UserPersonalDataset(Dataset):
+    """
+    Датасет, в котором информация поделена по пользователям.
+    """
+    def __init__(self, usersId: pd.Series, itemsId: pd.Series, rating: pd.Series, interaction_matrix: pd.DataFrame):
+        self.user_series = usersId
+        self.item_series = itemsId
+        self.rating_series = rating
+        self.interactions = interaction_matrix
+        self.unique_users = pd.unique(self.user_series)
+
+    def __getitem__(self, idx):
+        user = self.unique_users[idx]
+        idxes = self.user_series == user
+        user_v = self.user_series[idxes]
+        user_v = torch.LongTensor(user_v.tolist())
+        item_v = self.item_series[idxes]
+        item_v = torch.LongTensor(item_v.to_list())
+        rating_v = self.rating_series[idxes]
+        rating_v = torch.FloatTensor(rating_v.tolist())
+
+        user_inter = torch.squeeze(torch.tensor(self.interactions.loc[[user]].values))
+        user_rep = user_inter.repeat((user_v.shape[0], 1))
+        items_inter = []
+        for i in range(user_v.shape[0]):
+            item = item_v[i].numpy()
+            items_inter.append(self.interactions[item].values)
+
+        return user_v, item_v, rating_v, user_rep, torch.from_numpy(np.array(items_inter))
+
+    def __len__(self):
+        return self.unique_users.size
 
 
 class DataPreprocessing:
@@ -258,3 +293,33 @@ class DataPreprocessing:
         test_dataloader = DataLoader(t_dataset, batch_size=batch_size, shuffle=True)
 
         return train_dataloader, test_dataloader
+
+    def get__train_test_grouped_by_user(self, df: pd.DataFrame, per: float = 0.2) -> Tuple[UserPersonalDataset, UserPersonalDataset]:
+        '''
+          Функция для деления на train и test Dataset по пользователям.
+          Деление выполняется по каждому пользователю. В тестовый датасет попадают последние(хронологически) записи о нем.
+          :param df: pd.DataFrame, датасет с данными
+          :param per: float, размер тестовой и валидационной выборок в процентах
+          :return: Dataset-ы с тренировочными и тестовыми данными, сгруппированными по пользователям
+          :rtype: Tuple[UserPersonalDataset, UserPersonalDataset]
+        '''
+        if self.normilized_col in df.columns:
+            ratings = self.normilized_col
+        else:
+            ratings = self.rating_col
+
+        interactions = self.interaction_matrix(df)
+        tr, t = self.train_test_split_per(df, per)
+        train_interactions = self.remove_ratings_from_interaction_matrix(interactions, t)
+
+        tr_user = tr[self.user_col]
+        tr_item = tr[self.item_col]
+        tr_rating = tr[ratings]
+        tr_dataset = UserPersonalDataset(tr_user, tr_item, tr_rating, train_interactions)
+
+        t_user = t[self.user_col]
+        t_item = t[self.item_col]
+        t_rating = t[ratings]
+        t_dataset = UserPersonalDataset(t_user, t_item, t_rating, interactions)
+
+        return tr_dataset, t_dataset
