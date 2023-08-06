@@ -277,7 +277,7 @@ class DataPreprocessing:
             ratings = self.rating_col
 
         interactions = self.interaction_matrix(df)
-        tr, t = self.train_test_split_per(df, per)
+        tr, t = self._train_test_split_per(df, per)
         train_interactions = self._remove_ratings_from_interaction_matrix(interactions, t)
 
         tr_user = tr[self.user_col].tolist()
@@ -309,8 +309,8 @@ class DataPreprocessing:
             ratings = self.rating_col
 
         interactions = self.interaction_matrix(df)
-        tr, t = self.train_test_split_per(df, per)
-        train_interactions = self.remove_ratings_from_interaction_matrix(interactions, t)
+        tr, t = self._train_test_split_per(df, per)
+        train_interactions = self._remove_ratings_from_interaction_matrix(interactions, t)
 
         tr_user = tr[self.user_col]
         tr_item = tr[self.item_col]
