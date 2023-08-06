@@ -12,27 +12,34 @@ class Metrics:
     """
     Класс со всеми метриками, которые используются для оценки моделей
     """
-    def __init__(self, negentropy_approx: Callable = None):
+    def __init__(self, negentropy_approx: Callable = None, k_top: int = 10,
+                 spars_decimals: int = 1, indep_decimals: int =2):
         """
         :param negentropy_approx: Callable,какой приближение негэнтропии использовать при вычислении оценки независимости
+        :param k_top: int, для какого размера топа вычисляем значение NDSG
+        :param spars_decimals: int, количество значащих знаков при вычислении разреженности
+        :param indep_decimals: int, количество значащих знаков при вычислении разреженности матрицы корреляций
         """
         if negentropy_approx is None:
             # по умолчанию будем использовать это приближение, т.к. в экспериментах он дал наилучшие результаты для размеров выборки >200
             negentropy_approx = NegentropyApprox5()
         self.negentropy_approx = negentropy_approx
+        self.k_top = k_top
+        self.spars_decimals = spars_decimals
+        self.indep_decimals = indep_decimals
 
     # -----точность--------
 
-    def accurasy(self, expected: torch.Tensor, predicted: torch.Tensor, k_top: int = 10) -> Tuple[float, float]:
+    def accurasy(self, expected: torch.Tensor, predicted: torch.Tensor) -> Tuple[float, float]:
         """
         Функция по вычислению метрик "точности" предсказаний модели: RMSE, MSE, NDCG.
             Предполагается, что переданные данные относятся к 1 пользователю.
         :param expected: torch.Tensor, реальные значения :param predicted: torch.Tensor, значения, предсказанные
-        моделью :param k_top: int, для какого размера топа вычисляем значение NDSG
+        моделью
         :return: Tuple[float, float], возвращает пару значений RMSE и NDCG для переданных данных
         """
         mse = self._MSE(expected, predicted)
-        return np.sqrt(mse + 1e-6), mse, self._NDCG(expected, predicted, k_top)
+        return np.sqrt(mse + 1e-6), mse, self._NDCG(expected, predicted)
 
     def _MSE(self, expected: torch.Tensor, predicted: torch.Tensor) -> float:
         device = expected.device.type
@@ -48,7 +55,7 @@ class Metrics:
             predicted = predicted.to('cpu')
         return mean_absolute_error(expected, predicted)
 
-    def _NDCG(self, expected: torch.Tensor, predicted: torch.Tensor, k_top: int = 10) -> float:
+    def _NDCG(self, expected: torch.Tensor, predicted: torch.Tensor) -> float:
         device = expected.device.type
         if device != 'cpu':
             expected = expected.to('cpu')
@@ -57,22 +64,21 @@ class Metrics:
         expected = torch.squeeze(expected)
         predicted = torch.squeeze(predicted)
 
-        return ndcg_score([expected.numpy()], [predicted.numpy()], k=k_top)
+        return ndcg_score([expected.numpy()], [predicted.numpy()], k=self.k_top)
 
     # ------разреженность------
 
-    def sparsity(self, batch_of_vectors: torch.Tensor, decimals: int = 1) -> float:
+    def sparsity(self, batch_of_vectors: torch.Tensor) -> float:
         """
         Функция по вычислению метрики разреженности скрытых векторных представлений.
         :param batch_of_vectors: torch.Tensor, набор векторных представлений
-        :param decimals: int, количество значащих знаков при вычислении разреженности
         :return: float, значение меры разреженности для переданных данных
         """
         device = batch_of_vectors.device.type
         if device != 'cpu':
             batch_of_vectors = batch_of_vectors.to('cpu')
 
-        return Sparsity(decimals=decimals)(batch_of_vectors)
+        return Sparsity(decimals=self.spars_decimals)(batch_of_vectors)
 
     # ------независимость--------
 
@@ -81,11 +87,10 @@ class Metrics:
         Функция по вычислению метрик независимости компонент скрытых векторных представлений:
             через приближение взаимной информации и через разреженность матрицы корреляций(вне диагонали)
         :param batch_of_vectors: torch.Tensor, набор векторных представлений
-        :param decimals: int, количество значащих знаков при вычислении разреженности матрицы корреляций
         """
-        return self._correlation_matrix(batch_of_vectors, decimals), self._negentropy_diff(batch_of_vectors)
+        return self._correlation_matrix(batch_of_vectors), self._negentropy_diff(batch_of_vectors)
 
-    def _correlation_matrix(self, batch_of_vectors, decimals: int = 2):
+    def _correlation_matrix(self, batch_of_vectors):
         device = batch_of_vectors.device.type
         if device != 'cpu':
             batch_of_vectors = batch_of_vectors.to('cpu')
@@ -99,7 +104,7 @@ class Metrics:
         corr_matr[nan_values] = 0.0
 
         non_diag_corr_matr = torch.abs(corr_matr).fill_diagonal_(0.0)
-        rounded = torch.round(non_diag_corr_matr, decimals=decimals)
+        rounded = torch.round(non_diag_corr_matr, decimals=self.indep_decimals)
         not_null = torch.where(rounded > 0, 1, 0)
         return torch.sum(not_null) / count_of_non_diag_els
 
