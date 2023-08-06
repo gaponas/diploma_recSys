@@ -294,7 +294,7 @@ class DataPreprocessing:
 
         return train_dataloader, test_dataloader
 
-    def get__train_test_grouped_by_user(self, df: pd.DataFrame, per: float = 0.2) -> Tuple[UserPersonalDataset, UserPersonalDataset]:
+    def get_train_test_grouped_by_user(self, df: pd.DataFrame, per: float = 0.2) -> Tuple[UserPersonalDataset, UserPersonalDataset]:
         '''
           Функция для деления на train и test Dataset по пользователям.
           Деление выполняется по каждому пользователю. В тестовый датасет попадают последние(хронологически) записи о нем.
