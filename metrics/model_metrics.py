@@ -3,7 +3,7 @@ import numpy as np
 from typing import Callable, Tuple
 from sklearn.metrics import ndcg_score, mean_squared_error, mean_absolute_error
 
-from negentropy_approximations.approximations import NegentropyApprox5
+from metrics.negentropy_approximations.approximations import NegentropyApprox5
 from metrics.sparsity import Sparsity
 from metrics.independence import NegEntropyIndependence, ZCANormSVDPI
 
