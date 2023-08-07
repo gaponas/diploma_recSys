@@ -1,9 +1,9 @@
 from pandas import read_csv
 
-# TODO: удалить реальный путь на название+папку
-MOVIELENS_100K_RATINGS = "/home/aleksandra/MainInfo/magistr/diploma/diploma_recSys/data/datasets/u.data"
+# TODO: вставить путь, по которому хранятся датасеты
+MOVIELENS_100K_RATINGS = "../datasets/u.data"
 """ Путь к датасету MovieLens100k """
-MOVIELENS_1M_RATINGS = "/home/aleksandra/MainInfo/magistr/diploma/diploma_recSys/data/datasets/ratings.dat"
+MOVIELENS_1M_RATINGS = "../datasets/ratings.dat"
 """ Путь к датасету MovieLens1m """
 
 

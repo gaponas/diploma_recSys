@@ -11,8 +11,6 @@ class DMF(Module):
     """
     Модель deepMF, написанная на основании статьи https://www.ijcai.org/Proceedings/2017/0447.pdf
     """
-
-    # TODO: не забыть, что здесь везде убрала отдельное выделение первого слоя
     def __init__(self, user_input_size: int, item_input_size: int, latent_factor_size: int,
                  hidden_outputs: List[int]):
         """
