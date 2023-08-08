@@ -13,9 +13,9 @@ class NegEntropyIndependence:
 
     def __init__(self, negentropy_approx: Callable, preprocessing: Callable, factor : float = 1.0):
         """
-        :param negentropy_approx: Callable, некоторая функция по вычислению приближение негэнтропии
-        :param preprocessing: Callable, функция по выполнению предобработки входных данных
-        :param factor: float, то, с каким весом вычисляется метрика
+        :param negentropy_approx: некоторая функция по вычислению приближение негэнтропии
+        :param preprocessing: функция по выполнению предобработки входных данных
+        :param factor: то, с каким весом вычисляется метрика
         """
         self.negentropy = negentropy_approx
         self.preprocessing = preprocessing
@@ -24,8 +24,8 @@ class NegEntropyIndependence:
     def __call__(self, x: torch.Tensor) -> float:
         """
         Вычисление меры независимости.
-        :param x: torch.Tensor, вектор случайных величин, элементы которого -- выборки этих случайных величин
-        :return: float, результат вычисления меры независимости
+        :param x: вектор случайных величин, элементы которого -- выборки этих случайных величин
+        :return: результат вычисления меры независимости
         """
         device = x.device.type
 

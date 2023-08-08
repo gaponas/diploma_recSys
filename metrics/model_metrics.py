@@ -15,10 +15,10 @@ class Metrics:
     def __init__(self, negentropy_approx: Callable = None, k_top: int = 10,
                  spars_decimals: int = 1, indep_decimals: int =2):
         """
-        :param negentropy_approx: Callable,какой приближение негэнтропии использовать при вычислении оценки независимости
-        :param k_top: int, для какого размера топа вычисляем значение NDSG
-        :param spars_decimals: int, количество значащих знаков при вычислении разреженности
-        :param indep_decimals: int, количество значащих знаков при вычислении разреженности матрицы корреляций
+        :param negentropy_approx:какой приближение негэнтропии использовать при вычислении оценки независимости
+        :param k_top: для какого размера топа вычисляем значение NDSG
+        :param spars_decimals: количество значащих знаков при вычислении разреженности
+        :param indep_decimals: количество значащих знаков при вычислении разреженности матрицы корреляций
         """
         if negentropy_approx is None:
             # по умолчанию будем использовать это приближение, т.к. в экспериментах он дал наилучшие результаты для размеров выборки >200
@@ -33,10 +33,11 @@ class Metrics:
     def accurasy(self, expected: torch.Tensor, predicted: torch.Tensor) -> Tuple[float, float]:
         """
         Функция по вычислению метрик "точности" предсказаний модели: RMSE, MSE, NDCG.
-            Предполагается, что переданные данные относятся к 1 пользователю.
-        :param expected: torch.Tensor, реальные значения :param predicted: torch.Tensor, значения, предсказанные
+        Предполагается, что переданные данные относятся к 1 пользователю.
+
+        :param expected: реальные значения :param predicted: torch.Tensor, значения, предсказанные
         моделью
-        :return: Tuple[float, float], возвращает пару значений RMSE и NDCG для переданных данных
+        :return: возвращает пару значений RMSE и NDCG для переданных данных
         """
         mse = self._MSE(expected, predicted)
         return np.sqrt(mse + 1e-6), mse, self._NDCG(expected, predicted)
@@ -71,8 +72,9 @@ class Metrics:
     def sparsity(self, batch_of_vectors: torch.Tensor) -> float:
         """
         Функция по вычислению метрики разреженности скрытых векторных представлений.
-        :param batch_of_vectors: torch.Tensor, набор векторных представлений
-        :return: float, значение меры разреженности для переданных данных
+
+        :param batch_of_vectors: набор векторных представлений
+        :return: значение меры разреженности для переданных данных
         """
         device = batch_of_vectors.device.type
         if device != 'cpu':
@@ -82,11 +84,12 @@ class Metrics:
 
     # ------независимость--------
 
-    def independence(self, batch_of_vectors: torch.Tensor, decimals: int = 2):
+    def independence(self, batch_of_vectors: torch.Tensor):
         """
         Функция по вычислению метрик независимости компонент скрытых векторных представлений:
-            через приближение взаимной информации и через разреженность матрицы корреляций(вне диагонали)
-        :param batch_of_vectors: torch.Tensor, набор векторных представлений
+        через приближение взаимной информации и через разреженность матрицы корреляций(вне диагонали).
+
+        :param batch_of_vectors: набор векторных представлений
         """
         return self._correlation_matrix(batch_of_vectors), self._negentropy_diff(batch_of_vectors)
 

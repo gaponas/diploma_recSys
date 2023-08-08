@@ -7,16 +7,16 @@ from typing import List, Tuple
 
 class UserItemRatingDataset(Dataset):
     '''
-    Класс для формирования Dataset, для дальнейшего использования при обучении модели,
-    состоит только из userId, itemId, rating для пары userId-itemId (не использует дополнительную информацию)
+    Класс для формирования Dataset, для дальнейшего использования при обучении модели.
+    Состоит только из userId, itemId, rating для пары userId-itemId (не использует дополнительную информацию).
     '''
 
     def __init__(self, usersId: List[int], itemsId: List[int], rating: List[float], interaction_matrix: pd.DataFrame):
         """
-        :param List[int] usersId: набор Id пользователей
-        :param itemsId: List[int], набор Id элементов рекомендаций
-        :param rating: List[float], набор рейтингов, где rating[i,j] -- это оценка поставленная usersId[i] элементу itemsId[j]
-        :param interaction_matrix: pd.DataFrame, матрица интеракций, которая используется в задаче.
+        :param usersId: набор Id пользователей
+        :param itemsId: набор Id элементов рекомендаций
+        :param rating: набор рейтингов, где rating[i,j] -- это оценка поставленная usersId[i] элементу itemsId[j]
+        :param interaction_matrix: матрица интеракций, которая используется в задаче.
           Передаем на вход, т.к. некоторые пользователи/элементы могут не иметь взаимодействий ни с кем,
           а в матрицу их включить необходимо.
         """
@@ -83,13 +83,14 @@ class DataPreprocessing:
     def __init__(self, user_col: str, item_col: str, rating_col: str, sorting_col: str,
                  min_rating: float, max_rating: float):
         """
-        Задаем основные характеристики датасета: названия нужных в задаче столбцов
-        :param user_col: str, имя столбца с id пользователя
-        :param item_col: str, имя столбца с id рекомендуемого элемента
-        :param sorting_col: str, имя столбца, который отвечает за время(по которому можно определить порядок оценок)
-        :param rating_col: str, имя столбца с рейтингом, который поставил пользователь рекомендуемому элементу
-        :param min_rating: float, минимально допустимый рейтинг
-        :param max_rating: float -- максимально допустимый рейтинг
+        Задаем основные характеристики датасета: названия нужных в задаче столбцов.
+
+        :param user_col: имя столбца с id пользователя
+        :param item_col: имя столбца с id рекомендуемого элемента
+        :param sorting_col: имя столбца, который отвечает за время(по которому можно определить порядок оценок)
+        :param rating_col: имя столбца с рейтингом, который поставил пользователь рекомендуемому элементу
+        :param min_rating: минимально допустимый рейтинг
+        :param max_rating: максимально допустимый рейтинг
         """
 
         self.user_col = user_col
@@ -104,8 +105,9 @@ class DataPreprocessing:
     def normilize_ratings(self, df: pd.DataFrame) -> pd.DataFrame:
         """
           Нормализация столбца рейтингов MinMax scaler, перенос всех значений в диапазон [0,1].
-          :param df: pd.DataFrame, таблица в которой нужно нормализовать рейтинг
-          :return: pd.DataFrame, таблица, в которой столбец с рейтингом заменен столбцом с нормализованным
+
+          :param df: таблица в которой нужно нормализовать рейтинг
+          :return: таблицу, в которой столбец с рейтингом заменен столбцом с нормализованным
         """
         res_df = df.copy()
         res_df[self.normilized_col] = (res_df[self.rating_col] - self.min_rating) / (self.max_rating - self.min_rating)
@@ -114,8 +116,9 @@ class DataPreprocessing:
     def original_ratings(self, df: pd.DataFrame) -> pd.DataFrame:
         """
           Операция, обратная нормализации.
-          :param df: pd.DataFrame, таблица, в которой нужно восстановить оригинальные рейтинги из нормированных
-          :return: pd.DataFrame, таблица, в которой столбец с нормализованным рейтингом заменен столбцом с оригинальным
+
+          :param df:таблица, в которой нужно восстановить оригинальные рейтинги из нормированных
+          :return: таблицу, в которой столбец с нормализованным рейтингом заменен столбцом с оригинальным
         """
         res_df = df.copy()
         res_df[self.rating_col] = res_df[self.normilized_col] * (self.max_rating - self.min_rating) + self.min_rating
@@ -124,8 +127,9 @@ class DataPreprocessing:
     def interaction_matrix(self, df: pd.DataFrame) -> pd.DataFrame:
         """
           Построение матрицы интеракций пользователи-элементы.
-          :param df: pd.DataFrame, таблица с данными для построения матрицы интеракций
-          :return: pd.DataFrame, матрица интеракций
+
+          :param df: таблица с данными для построения матрицы интеракций
+          :return: матрицу интеракций
         """
         if self.normilized_col in df.columns:
             ratings = self.normilized_col
@@ -135,10 +139,11 @@ class DataPreprocessing:
 
     def _remove_ratings_from_interaction_matrix(self, interactions: pd.DataFrame, df: pd.DataFrame):
         """
-        Функция для удаления рейтингов из таблицы интеракций
-        :param interactions: pd.DataFrame, матрица интеракций
-        :param df: pd.DataFrame, матрица со столбцами пользователь-элемент-реакция, которые нужно удалить
-        :return: pd.DataFrame, матрица интеракций после удаления рейтингов
+        Функция для удаления рейтингов из таблицы интеракций.
+
+        :param interactions: матрица интеракций
+        :param df: матрица со столбцами пользователь-элемент-реакция, которые нужно удалить
+        :return: матрицу интеракций после удаления рейтингов
         """
         res = interactions.copy()
         renamed_df = df.rename(columns={self.user_col: 'user_id', self.item_col: 'item_id'})
@@ -166,11 +171,12 @@ class DataPreprocessing:
     def _train_valid_test_split_per(self, df: pd.DataFrame, per: float = 0.1) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         """
           Разделение датасета на train, valid, test части.
+
           Деление выполняется по каждому пользователю. В тестовый датасет попадают последние(хронологически) записи о нем.
-          :param df: pd.DataFrame, датасет
-          :param per: float, число в из интеравала (0, 1), размер тестовой и валидационной выборок в процентах
+
+          :param df: датасет
+          :param per: число в из интеравала (0, 1), размер тестовой и валидационной выборок в процентах
           :return: тренировочный, валидационный и тестовый датасеты.
-          :rtype: Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]
         """
         assert per >= 0 or per <= 1
         groups = dict(tuple(df.groupby(by=self.user_col)))
@@ -197,11 +203,12 @@ class DataPreprocessing:
     def _train_test_split_per(self, df: pd.DataFrame, per: float = 0.2) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
           Разделение датасета на train и test части.
+
           Деление выполняется по каждому пользователю. В тестовый датасет попадают последние(хронологически) записи о нем.
-          :param df: pd.DataFrame, датасет
-          :param per: float, число в из интеравала (0, 1), размер тестовой выборки в процентах
+
+          :param df: датасет
+          :param per: число в из интеравала (0, 1), размер тестовой выборки в процентах
           :return: тренировочный и тестовый датасеты.
-          :rtype: Tuple[pd.DataFrame, pd.DataFrame]
         """
         assert per >= 0 or per <= 1
         groups = dict(tuple(df.groupby(by=self.user_col)))
@@ -223,12 +230,13 @@ class DataPreprocessing:
     def get_train_valid_test_dataloader(self, df: pd.DataFrame, batch_size: int, per: float = 0.1) -> Tuple[DataLoader, DataLoader]:
         """
           Функция для получения на train и test DataLoader.
+
           Деление выполняется по каждому пользователю. В тестовый датасет попадают последние(хронологически) записи о нем.
-          :param df: pd.DataFrame, датасет с данными
-          :param batch_size: int, размер батча
-          :param per: float, размер тестовой и валидационной выборок в процентах
+
+          :param df: датасет с данными
+          :param batch_size: размер батча
+          :param per: размер тестовой и валидационной выборок в процентах
           :return: DataLoader-ы с тренировочными, валидационными и тестовыми данными
-          :rtype: Tuple[DataLoader, DataLoader]
         """
         if self.normilized_col in df.columns:
             ratings = self.normilized_col
@@ -264,12 +272,13 @@ class DataPreprocessing:
     def get_train_test_dataloader(self, df: pd.DataFrame, batch_size: int, per: float = 0.2) -> Tuple[DataLoader, DataLoader]:
         """
           Функция для получения на train и test DataLoader.
+
           Деление выполняется по каждому пользователю. В тестовый датасет попадают последние(хронологически) записи о нем.
-          :param df: pd.DataFrame, датасет с данными
-          :param batch_size: int, размер батча
-          :param per: float, размер тестовой и валидационной выборок в процентах
+
+          :param df: датасет с данными
+          :param batch_size: размер батча
+          :param per: размер тестовой и валидационной выборок в процентах
           :return: DataLoader-ы с тренировочными и тестовыми данными
-          :rtype: Tuple[DataLoader, DataLoader]
         """
         if self.normilized_col in df.columns:
             ratings = self.normilized_col
@@ -297,11 +306,12 @@ class DataPreprocessing:
     def get_train_test_grouped_by_user(self, df: pd.DataFrame, per: float = 0.2) -> Tuple[UserPersonalDataset, UserPersonalDataset]:
         '''
           Функция для деления на train и test Dataset по пользователям.
+
           Деление выполняется по каждому пользователю. В тестовый датасет попадают последние(хронологически) записи о нем.
-          :param df: pd.DataFrame, датасет с данными
-          :param per: float, размер тестовой и валидационной выборок в процентах
+
+          :param df: датасет с данными
+          :param per: размер тестовой и валидационной выборок в процентах
           :return: Dataset-ы с тренировочными и тестовыми данными, сгруппированными по пользователям
-          :rtype: Tuple[UserPersonalDataset, UserPersonalDataset]
         '''
         if self.normilized_col in df.columns:
             ratings = self.normilized_col

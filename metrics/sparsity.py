@@ -7,16 +7,17 @@ class Sparsity:
     """
     def __init__(self, factor: float = 1.0, decimals: int = 1):
         """
-        :param factor: float, то, с каким весом вычисляется метрика
-        :param decimals: int, количество знаков после запятой, которые считаются значащими
+        :param factor: то, с каким весом вычисляется метрика
+        :param decimals: количество знаков после запятой, которые считаются значащими
         """
         self.factor = factor
         self.decimals = decimals
 
     def __call__(self, x: torch.Tensor):
         """
-        Вычисление меры разреженности. Разреженностью считается средняя разреженность по всем векторам
-        :param x: torch.Tensor, набор векторов.
+        Вычисление меры разреженности. Разреженностью считается средняя разреженность по всем векторам.
+
+        :param x: набор векторов.
         :return: результат вычисления меры разреженности
         """
         rounded = torch.round(x, decimals=self.decimals)
